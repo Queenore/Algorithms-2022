@@ -2,6 +2,9 @@
 
 package lesson7
 
+//import java.io.File
+//import java.lang.Math.min
+
 /**
  * Наибольшая общая подпоследовательность.
  * Средняя
@@ -56,4 +59,23 @@ fun longestIncreasingSubSequence(list: List<Int>): List<Int> {
  */
 fun shortestPathOnField(inputName: String): Int {
     TODO()
+//    val arr = mutableListOf<Array<Int>>()
+//    File(inputName).forEachLine { string -> arr.add(string.split(" ").map { it.toInt() }.toTypedArray()) }
+//    return sub(0, 0, Array(arr.size) { Array(arr[0].size) { 0 } }, arr.toTypedArray())
 }
+
+//fun sub(x: Int, y: Int, arr: Array<Array<Int>>, mainArr: Array<Array<Int>>): Int {
+//    return if (x == mainArr.size && y == mainArr[0].size) {
+//        0
+//    } else if (x >= mainArr.size || y >= mainArr[0].size) {
+//        Int.MAX_VALUE
+//    } else if (arr[x][y] != 0) {
+//        arr[x][y]
+//    } else {
+//        arr[x][y] = mainArr[x][y] +
+//                sub(x + 1, y, arr, mainArr).coerceAtMost(
+//                    sub(x, y + 1, arr, mainArr).coerceAtMost(
+//                        sub(x + 1, y + 1, arr, mainArr)))
+//        arr[x][y]
+//    }
+//}

@@ -2,6 +2,8 @@
 
 package lesson1
 
+import java.io.File
+
 /**
  * Сортировка времён
  *
@@ -33,7 +35,56 @@ package lesson1
  * В случае обнаружения неверного формата файла бросить любое исключение.
  */
 fun sortTimes(inputName: String, outputName: String) {
-    TODO()
+    val list = mutableListOf<Pair<String, String>>() // T(N) = 1, R(N) = O(N)
+    File(inputName).forEachLine {
+        if (!it.matches(Regex("""(\d{2}:\d{2}:\d{2}.(AM|PM))"""))) // T(N) = O(N)
+            throw IllegalArgumentException() // T(N) = 0..1
+        val sp = it.split(" ") // T(N) = O(N)
+        list.add(Pair(sp[0], sp[1])) // T(N) = O(N)
+    }
+    val arr = list.toTypedArray() // T(N) = 1, R(N) = O(N)
+    mergeSortTimes(arr, 0, list.size) // T(N) = O(N * log(2)N)
+    File(outputName).bufferedWriter().use { out ->
+        arr.forEach {
+            out.write("${it.first} ${it.second}\n") // T(N) = O(N)
+        }
+    }
+}
+// T(N) = O(N * log(2)N)
+// R(N) = O(N) = O(N)
+
+fun date(str: String) =
+    str.split(":")
+        .mapIndexed { index, it ->
+            when (index) {
+                0 -> if (it.toInt() == 12) 0 else it.toInt() * 3600
+                1 -> it.toInt() * 60
+                else -> it.toInt()
+            }
+        }.sum()
+
+private fun mergeSortTimes(elements: Array<Pair<String, String>>, begin: Int, end: Int) {
+    if (end - begin <= 1) return
+    val middle = (begin + end) / 2
+    mergeSortTimes(elements, begin, middle)
+    mergeSortTimes(elements, middle, end)
+    mergeTimes(elements, begin, middle, end)
+}
+
+private fun mergeTimes(elements: Array<Pair<String, String>>, begin: Int, middle: Int, end: Int) {
+    val left = elements.copyOfRange(begin, middle)
+    val right = elements.copyOfRange(middle, end)
+    var li = 0
+    var ri = 0
+    for (i in begin until end)
+        elements[i] = if (li < left.size && ri == right.size)
+            left[li++]
+        else if (li < left.size && left[li].second != right[ri].second) {
+            if (left[li].second == "PM") right[ri++] else left[li++]
+        } else if (li < left.size && date(left[li].first) <= date(right[ri].first)) {
+            left[li++]
+        } else
+            right[ri++]
 }
 
 /**
@@ -97,7 +148,39 @@ fun sortAddresses(inputName: String, outputName: String) {
  * 121.3
  */
 fun sortTemperatures(inputName: String, outputName: String) {
-    TODO()
+    val list = mutableListOf<Float>() // R(N) = O(N), T(N) = 1
+    File(inputName).forEachLine { list.add(it.toFloat()) } // T(N) = O(N)
+    val arr = list.toFloatArray() // R(N) = O(N), T(N) = 1
+    mergeSortTemp(arr, 0, list.size) // T(N) = O(N * log(2)N)
+    File(outputName).bufferedWriter().use { out ->
+        arr.forEach {
+            out.write("$it\n") // T(N) = O(N)
+        }
+    }
+}
+// T(N) = O(N * log(2)N)
+// R(N) = O(N)
+
+private fun mergeTemp(elements: FloatArray, begin: Int, middle: Int, end: Int) {
+    val left = elements.copyOfRange(begin, middle)
+    val right = elements.copyOfRange(middle, end)
+    var li = 0
+    var ri = 0
+    for (i in begin until end) {
+        if (li < left.size && (ri == right.size || left[li] <= right[ri])) {
+            elements[i] = left[li++]
+        } else {
+            elements[i] = right[ri++]
+        }
+    }
+}
+
+private fun mergeSortTemp(elements: FloatArray, begin: Int, end: Int) {
+    if (end - begin <= 1) return
+    val middle = (begin + end) / 2
+    mergeSortTemp(elements, begin, middle)
+    mergeSortTemp(elements, middle, end)
+    mergeTemp(elements, begin, middle, end)
 }
 
 /**
@@ -130,8 +213,27 @@ fun sortTemperatures(inputName: String, outputName: String) {
  * 2
  */
 fun sortSequence(inputName: String, outputName: String) {
-    TODO()
+    val map = mutableMapOf<Int, Int>() // T(N) = 1, R(N) = O(N)
+    var pair = Pair(Int.MAX_VALUE, 0) // T(N) = 1
+    val list = mutableListOf<Int>() // T(N) = 1, R(N) = O(N)
+    File(inputName).forEachLine { // T(N) = O(N)
+        if (!map.containsKey(it.toInt())) map[it.toInt()] = 1
+        else map[it.toInt()] = map[it.toInt()]!!.plus(1)
+        if (map[it.toInt()]!! > pair.second || (map[it.toInt()]!! == pair.second && it.toInt() < pair.first))
+            pair = Pair(it.toInt(), map[it.toInt()]!!)
+        list.add(it.toInt())
+    }
+    File(outputName).bufferedWriter().use { out ->
+        list.forEach { // T(N) = O(N)
+            if (it != pair.first)
+                out.write("$it\n") // T(N) = 0..O(N-1)
+        }
+        for (i in 1..pair.second)
+            out.write("${pair.first}\n") // T(N) = 1..O(N)
+    }
 }
+// T(N) = O(N)
+// R(N) = O(N)
 
 /**
  * Соединить два отсортированных массива в один

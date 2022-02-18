@@ -8,8 +8,36 @@ import java.io.File
 import java.util.*
 import kotlin.math.abs
 import kotlin.system.measureNanoTime
+import kotlin.test.assertTrue
 
 abstract class AbstractTaskTests : AbstractFileTests() {
+
+    private fun generateTimeFile(name: String, size: Int) {
+        val times = mutableListOf<String>()
+        for (i in 0 until size) {
+            val halfDay = if ((0..1).random() == 1) "AM" else "PM"
+            var hours = "${(1..12).random()}"
+            if (hours.toInt() / 10 == 0) hours = "0$hours"
+            var min = "${(0..60).random()}"
+            if (min.toInt() / 10 == 0) min = "0$min"
+            var sec = "${(0..60).random()}"
+            if (sec.toInt() / 10 == 0) sec = "0$sec"
+            times += "$hours:$min:$sec $halfDay"
+        }
+        File(name).bufferedWriter().use {
+            times.forEach { it1 -> it.write("$it1\n") }
+        }
+    }
+
+    private fun date(str: String) =
+        str.split(":")
+            .mapIndexed { index, it ->
+                when (index) {
+                    0 -> if (it.toInt() == 12) 0 else it.toInt() * 3600
+                    1 -> it.toInt() * 60
+                    else -> it.toInt()
+                }
+            }.sum()
 
     protected fun sortTimes(sortTimes: (String, String) -> Unit) {
         try {
@@ -43,6 +71,33 @@ abstract class AbstractTaskTests : AbstractFileTests() {
             sortTimes("input/time_in3.txt", "temp.txt")
             assertFileContent("temp.txt", File("input/time_out3.txt").readLines())
         } finally {
+            File("temp.txt").delete()
+        }
+        try {
+            try {
+                sortTimes("input/time_in4.txt", "temp.txt")
+            } catch (_: java.lang.IllegalArgumentException) {
+            }
+        } finally {
+            File("temp.txt").delete()
+        }
+        try {
+            generateTimeFile("input/time_in5.txt", 200000)
+            sortTimes("input/time_in5.txt", "temp.txt")
+            var t = ""
+            var cond = true
+            File("temp.txt").forEachLine {
+                if (t == "") t = it
+                else if ((it.split(" ")[1] != t.split(" ")[1] &&
+                            it.split(" ")[1] < t.split(" ")[1]) ||
+                    (it.split(" ")[1] == t.split(" ")[1] &&
+                            date(it.split(" ")[0]) < date(it.split(" ")[0]))
+                ) cond = false
+                t = it
+            }
+            assertTrue(cond)
+        } finally {
+            File("input/time_in5.txt").delete()
             File("temp.txt").delete()
         }
         try {
@@ -125,6 +180,20 @@ abstract class AbstractTaskTests : AbstractFileTests() {
                     24.7
                     99.5
                     121.3
+                """.trimIndent()
+            )
+        } finally {
+            File("temp.txt").delete()
+        }
+        try {
+            sortTemperatures("input/temp_in2.txt", "temp.txt")
+            assertFileContent(
+                "temp.txt",
+                """
+                    -1.0
+                    0.0
+                    0.0
+                    1.0
                 """.trimIndent()
             )
         } finally {
@@ -290,6 +359,37 @@ abstract class AbstractTaskTests : AbstractFileTests() {
                         41
                         32
                         32
+                    """.trimIndent()
+            )
+        } finally {
+            File("temp.txt").delete()
+        }
+        try {
+            sortSequence("input/seq_in6.txt", "temp.txt")
+            assertFileContent(
+                "temp.txt",
+                """
+                        1
+                        3
+                        2
+                        4
+                        6
+                        0
+                    """.trimIndent()
+            )
+        } finally {
+            File("temp.txt").delete()
+        }
+        try {
+            sortSequence("input/seq_in7.txt", "temp.txt")
+            assertFileContent(
+                "temp.txt",
+                """
+                        1
+                        1
+                        1
+                        1
+                        1
                     """.trimIndent()
             )
         } finally {
