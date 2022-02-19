@@ -3,6 +3,7 @@
 package lesson1
 
 import java.io.File
+import kotlin.math.abs
 
 /**
  * Сортировка времён
@@ -35,35 +36,38 @@ import java.io.File
  * В случае обнаружения неверного формата файла бросить любое исключение.
  */
 fun sortTimes(inputName: String, outputName: String) {
-    val list = mutableListOf<Pair<String, String>>() // T(N) = 1, R(N) = O(N)
+    val list = mutableListOf<String>() // T(N) = 1, R(N) = O(N)
     File(inputName).forEachLine {
         if (!it.matches(Regex("""(\d{2}:\d{2}:\d{2}.(AM|PM))"""))) // T(N) = O(N)
             throw IllegalArgumentException() // T(N) = 0..1
-        val sp = it.split(" ") // T(N) = O(N)
-        list.add(Pair(sp[0], sp[1])) // T(N) = O(N)
+        list.add(it) // T(N) = O(N)
     }
     val arr = list.toTypedArray() // T(N) = 1, R(N) = O(N)
-    mergeSortTimes(arr, 0, list.size) // T(N) = O(N * log(2)N)
+    mergeSortTimes(arr, 0, list.size) // T(N) = O(N * logN)
     File(outputName).bufferedWriter().use { out ->
         arr.forEach {
-            out.write("${it.first} ${it.second}\n") // T(N) = O(N)
+            out.write("$it\n") // T(N) = O(N)
         }
     }
 }
-// T(N) = O(N * log(2)N)
+// T(N) = O(N * logN)
 // R(N) = O(N) = O(N)
 
-fun date(str: String) =
-    str.split(":")
-        .mapIndexed { index, it ->
-            when (index) {
-                0 -> if (it.toInt() == 12) 0 else it.toInt() * 3600
-                1 -> it.toInt() * 60
-                else -> it.toInt()
-            }
-        }.sum()
+fun date(str: String): Pair<Int, String> {
+    val list = str.split(" ")
+    return Pair(
+        list[0].split(":")
+            .mapIndexed { index, it ->
+                when (index) {
+                    0 -> if (it.toInt() == 12) 0 else it.toInt() * 3600
+                    1 -> it.toInt() * 60
+                    else -> it.toInt()
+                }
+            }.sum(), list[1]
+    )
+}
 
-private fun mergeSortTimes(elements: Array<Pair<String, String>>, begin: Int, end: Int) {
+private fun mergeSortTimes(elements: Array<String>, begin: Int, end: Int) {
     if (end - begin <= 1) return
     val middle = (begin + end) / 2
     mergeSortTimes(elements, begin, middle)
@@ -71,7 +75,7 @@ private fun mergeSortTimes(elements: Array<Pair<String, String>>, begin: Int, en
     mergeTimes(elements, begin, middle, end)
 }
 
-private fun mergeTimes(elements: Array<Pair<String, String>>, begin: Int, middle: Int, end: Int) {
+private fun mergeTimes(elements: Array<String>, begin: Int, middle: Int, end: Int) {
     val left = elements.copyOfRange(begin, middle)
     val right = elements.copyOfRange(middle, end)
     var li = 0
@@ -79,9 +83,9 @@ private fun mergeTimes(elements: Array<Pair<String, String>>, begin: Int, middle
     for (i in begin until end)
         elements[i] = if (li < left.size && ri == right.size)
             left[li++]
-        else if (li < left.size && left[li].second != right[ri].second) {
-            if (left[li].second == "PM") right[ri++] else left[li++]
-        } else if (li < left.size && date(left[li].first) <= date(right[ri].first)) {
+        else if (li < left.size && date(left[li]).second != date(right[ri]).second) {
+            if (date(left[li]).second == "PM") right[ri++] else left[li++]
+        } else if (li < left.size && date(left[li]).first <= date(right[ri]).first) {
             left[li++]
         } else
             right[ri++]
@@ -151,37 +155,33 @@ fun sortTemperatures(inputName: String, outputName: String) {
     val list = mutableListOf<Float>() // R(N) = O(N), T(N) = 1
     File(inputName).forEachLine { list.add(it.toFloat()) } // T(N) = O(N)
     val arr = list.toFloatArray() // R(N) = O(N), T(N) = 1
-    mergeSortTemp(arr, 0, list.size) // T(N) = O(N * log(2)N)
+    countingSort(arr) // T(N) = O(N)
     File(outputName).bufferedWriter().use { out ->
         arr.forEach {
             out.write("$it\n") // T(N) = O(N)
         }
     }
 }
-// T(N) = O(N * log(2)N)
+// T(N) = O(N)
 // R(N) = O(N)
 
-private fun mergeTemp(elements: FloatArray, begin: Int, middle: Int, end: Int) {
-    val left = elements.copyOfRange(begin, middle)
-    val right = elements.copyOfRange(middle, end)
-    var li = 0
-    var ri = 0
-    for (i in begin until end) {
-        if (li < left.size && (ri == right.size || left[li] <= right[ri])) {
-            elements[i] = left[li++]
-        } else {
-            elements[i] = right[ri++]
-        }
+fun countingSort(elements: FloatArray) {
+    var b = 0
+    val negArr = Array(2731) { 0 }
+    val posArr = Array(5011) { 0 }
+    elements.forEach {
+        if (it >= 0)
+            posArr[(abs(it) * 10).toInt()]++
+        else negArr[(abs(it) * 10).toInt()]++
     }
+    for (j in 2730 downTo 0)
+        for (i in 0 until negArr[j])
+            elements[b++] = "-${j / 10}.${j % 10}".toFloat()
+    for (j in 0..5010)
+        for (i in 0 until posArr[j])
+            elements[b++] = "${j / 10}.${j % 10}".toFloat()
 }
 
-private fun mergeSortTemp(elements: FloatArray, begin: Int, end: Int) {
-    if (end - begin <= 1) return
-    val middle = (begin + end) / 2
-    mergeSortTemp(elements, begin, middle)
-    mergeSortTemp(elements, middle, end)
-    mergeTemp(elements, begin, middle, end)
-}
 
 /**
  * Сортировка последовательности
@@ -217,11 +217,12 @@ fun sortSequence(inputName: String, outputName: String) {
     var pair = Pair(Int.MAX_VALUE, 0) // T(N) = 1
     val list = mutableListOf<Int>() // T(N) = 1, R(N) = O(N)
     File(inputName).forEachLine { // T(N) = O(N)
-        if (!map.containsKey(it.toInt())) map[it.toInt()] = 1
-        else map[it.toInt()] = map[it.toInt()]!!.plus(1)
-        if (map[it.toInt()]!! > pair.second || (map[it.toInt()]!! == pair.second && it.toInt() < pair.first))
-            pair = Pair(it.toInt(), map[it.toInt()]!!)
-        list.add(it.toInt())
+        val elem = it.toInt()
+        if (!map.containsKey(elem)) map[elem] = 1
+        else map[elem] = map[elem]!!.plus(1)
+        if (map[elem]!! > pair.second || (map[elem] == pair.second && elem < pair.first))
+            pair = Pair(elem, map[elem]!!)
+        list.add(elem)
     }
     File(outputName).bufferedWriter().use { out ->
         list.forEach { // T(N) = O(N)
