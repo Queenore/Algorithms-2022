@@ -88,11 +88,10 @@ abstract class AbstractTaskTests : AbstractFileTests() {
             var cond = true
             File("temp.txt").forEachLine {
                 if (t == "") t = it
-                else if ((it.split(" ")[1] != t.split(" ")[1] &&
-                            it.split(" ")[1] < t.split(" ")[1]) ||
-                    (it.split(" ")[1] == t.split(" ")[1] &&
-                            date(it.split(" ")[0]) < date(it.split(" ")[0]))
-                ) cond = false
+                val t1 = t.split(" ")
+                val it1 = it.split(" ")
+                if ((it1[1] != t1[1] && it1[1] < t1[1]) || (it1[1] == t1[1] && date(it1[0]) < date(it1[0])))
+                    cond = false
                 t = it
             }
             assertTrue(cond)

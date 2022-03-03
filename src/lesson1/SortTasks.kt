@@ -53,19 +53,21 @@ fun sortTimes(inputName: String, outputName: String) {
 // T(N) = O(N * logN)
 // R(N) = O(N) = O(N)
 
-fun date(str: String): Pair<Int, String> {
-    val list = str.split(" ")
-    return Pair(
-        list[0].split(":")
-            .mapIndexed { index, it ->
-                when (index) {
-                    0 -> if (it.toInt() == 12) 0 else it.toInt() * 3600
-                    1 -> it.toInt() * 60
-                    else -> it.toInt()
-                }
-            }.sum(), list[1]
-    )
+fun compDate(str1: String, str2: String): Comparable<Int> {
+    val l1 = str1.split(" ")
+    val l2 = str2.split(" ")
+    return if (l1[1] == "PM" && l2[1] == "AM" || (l1[1] == l2[1] && time(l1[0]) >= time(l2[0]))) 1
+    else -1
 }
+
+fun time(str: String) = str.split(":")
+    .mapIndexed { index, it ->
+        when (index) {
+            0 -> if (it.toInt() == 12) 0 else it.toInt() * 3600
+            1 -> it.toInt() * 60
+            else -> it.toInt()
+        }
+    }.sum()
 
 private fun mergeSortTimes(elements: Array<String>, begin: Int, end: Int) {
     if (end - begin <= 1) return
@@ -81,14 +83,11 @@ private fun mergeTimes(elements: Array<String>, begin: Int, middle: Int, end: In
     var li = 0
     var ri = 0
     for (i in begin until end)
-        elements[i] = if (li < left.size && ri == right.size)
-            left[li++]
-        else if (li < left.size && date(left[li]).second != date(right[ri]).second) {
-            if (date(left[li]).second == "PM") right[ri++] else left[li++]
-        } else if (li < left.size && date(left[li]).first <= date(right[ri]).first) {
-            left[li++]
-        } else
-            right[ri++]
+        elements[i] =
+            if ((li < left.size && ri == right.size) || (li < left.size && compDate(left[li], right[ri]) == -1))
+                left[li++]
+            else
+                right[ri++]
 }
 
 /**
@@ -167,17 +166,17 @@ fun sortTemperatures(inputName: String, outputName: String) {
 
 fun countingSort(elements: FloatArray) {
     var b = 0
-    val negArr = Array(2731) { 0 }
-    val posArr = Array(5011) { 0 }
+    val negArr = IntArray(2731) { 0 }
+    val posArr = IntArray(5011) { 0 }
     elements.forEach {
         if (it >= 0)
             posArr[(abs(it) * 10).toInt()]++
         else negArr[(abs(it) * 10).toInt()]++
     }
-    for (j in 2730 downTo 0)
+    for (j in negArr.size - 1 downTo 0)
         for (i in 0 until negArr[j])
             elements[b++] = "-${j / 10}.${j % 10}".toFloat()
-    for (j in 0..5010)
+    for (j in posArr.indices)
         for (i in 0 until posArr[j])
             elements[b++] = "${j / 10}.${j % 10}".toFloat()
 }

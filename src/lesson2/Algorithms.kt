@@ -95,8 +95,19 @@ fun josephTask(menNumber: Int, choiceInterval: Int): Int {
  * вернуть ту из них, которая встречается раньше в строке first.
  */
 fun longestCommonSubstring(first: String, second: String): String {
-    TODO()
+    var maxSubStr = "" //T(N) = O(1), R(N) = O(1)
+    for (i in first.indices) //T(N) = O(N)
+        for (j in second.indices) //T(N) = O(N)
+            if (first[i] == second[j]) {
+                var k = 0 //T(N) = O(1), R(N) = O(1)
+                while (i + k < first.length - 1 && j + k <= second.length - 1 && first[i + k] == second[j + k])
+                    k++
+                if (k > maxSubStr.length)
+                    maxSubStr = first.substring(i, i + k)
+            }
+    return maxSubStr
 }
+//T(N) = O(N^2)
 
 /**
  * Число простых чисел в интервале
@@ -109,5 +120,22 @@ fun longestCommonSubstring(first: String, second: String): String {
  * Единица простым числом не считается.
  */
 fun calcPrimesNumber(limit: Int): Int {
-    TODO()
+    if (limit <= 1) return 0
+    val list = MutableList(limit - 1) { index -> index + 2 } //R(O) = O(N)
+    var i = 2
+    while (i <= limit) { //T(O) = O(N)
+        if (list[i - 2] != 0) {
+            var j = i + i
+            while (j <= limit) { //T(O) = O(log(logN))
+                list[j - 2] = 0
+                j += i
+            }
+        }
+        i++
+    }
+    var count = limit - 1
+    list.forEach { if (it == 0) count-- }
+    return count
 }
+//T(0) = O(N*log(logN))
+//R(0) = O(N)
