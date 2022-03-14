@@ -219,8 +219,9 @@ fun sortSequence(inputName: String, outputName: String) {
         val elem = it.toInt()
         if (!map.containsKey(elem)) map[elem] = 1
         else map[elem] = map[elem]!!.plus(1)
-        if (map[elem]!! > pair.second || (map[elem] == pair.second && elem < pair.first))
-            pair = Pair(elem, map[elem]!!)
+        val currMapValue = map[elem]!!
+        if (currMapValue > pair.second || (currMapValue == pair.second && elem < pair.first))
+            pair = Pair(elem, currMapValue)
         list.add(elem)
     }
     File(outputName).bufferedWriter().use { out ->

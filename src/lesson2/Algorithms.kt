@@ -95,11 +95,11 @@ fun josephTask(menNumber: Int, choiceInterval: Int): Int {
  * вернуть ту из них, которая встречается раньше в строке first.
  */
 fun longestCommonSubstring(first: String, second: String): String {
-    var maxSubStr = "" //T(N) = O(1), R(N) = O(1)
-    for (i in first.indices) //T(N) = O(N)
-        for (j in second.indices) //T(N) = O(N)
+    var maxSubStr = ""
+    for (i in first.indices) //T(N, M) = O(N)
+        for (j in second.indices) //T(N, M) = O(N * M)
             if (first[i] == second[j]) {
-                var k = 0 //T(N) = O(1), R(N) = O(1)
+                var k = 0
                 while (i + k < first.length - 1 && j + k <= second.length - 1 && first[i + k] == second[j + k])
                     k++
                 if (k > maxSubStr.length)
@@ -107,7 +107,7 @@ fun longestCommonSubstring(first: String, second: String): String {
             }
     return maxSubStr
 }
-//T(N) = O(N^2)
+//T(N, M) = O(N * M)
 
 /**
  * Число простых чисел в интервале
