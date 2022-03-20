@@ -7,7 +7,7 @@ import kotlin.math.max
 class KtBinarySearchTree<T : Comparable<T>> : AbstractMutableSet<T>(), CheckableSortedSet<T> {
 
     private class Node<T>(
-        val value: T
+        var value: T
     ) {
         var left: Node<T>? = null
         var right: Node<T>? = null
@@ -28,6 +28,21 @@ class KtBinarySearchTree<T : Comparable<T>> : AbstractMutableSet<T>(), Checkable
             comparison < 0 -> start.left?.let { find(it, value) } ?: start
             else -> start.right?.let { find(it, value) } ?: start
         }
+    }
+
+    private fun findParent(value: T): Node<T>? {
+        if (root == null) return null
+        var node = root
+        while ((node!!.left == null || node.left!!.value != value) && (node.right == null || node.right!!.value != value))
+            if (node.right != null && node.value < value)
+                node = node.right
+            else if (node.left != null)
+                node = node.left
+            else {
+                node = null
+                break
+            }
+        return node
     }
 
     override operator fun contains(element: T): Boolean {
@@ -91,6 +106,33 @@ class KtBinarySearchTree<T : Comparable<T>> : AbstractMutableSet<T>(), Checkable
 
     inner class BinarySearchTreeIterator internal constructor() : MutableIterator<T> {
 
+        private var currNode = root
+        private val list = mutableListOf<Node<T>?>()
+        private var flag = false
+
+        // реализован прямой обход дерева с сохранением нод в list, которые были пройдены
+        // сохранение состояния позволяет минимизировать трудоемкость
+        private fun traverse(): Node<T>? {
+            if (root == null) return null
+            var node = root
+
+            if (currNode == root && !list.contains(currNode))
+                while (node!!.left != null)
+                    node = node.left
+            else node = currNode
+
+            if (node!!.right != null) {
+                while (node!!.right != null && list.contains(node))
+                    node = node.right
+                while (node!!.left != null)
+                    node = node.left
+            } else
+                while (list.contains(node))
+                    node = findParent(node!!.value)
+
+            return node
+        }
+
         /**
          * Проверка наличия следующего элемента
          *
@@ -101,10 +143,7 @@ class KtBinarySearchTree<T : Comparable<T>> : AbstractMutableSet<T>(), Checkable
          *
          * Средняя
          */
-        override fun hasNext(): Boolean {
-            // TODO
-            throw NotImplementedError()
-        }
+        override fun hasNext(): Boolean = traverse() != null
 
         /**
          * Получение следующего элемента
@@ -120,8 +159,12 @@ class KtBinarySearchTree<T : Comparable<T>> : AbstractMutableSet<T>(), Checkable
          * Средняя
          */
         override fun next(): T {
-            // TODO
-            throw NotImplementedError()
+            currNode = traverse()
+            list.add(currNode)
+            flag = false
+            if (currNode != null)
+                return currNode!!.value
+            else throw NoSuchElementException()
         }
 
         /**
@@ -136,11 +179,56 @@ class KtBinarySearchTree<T : Comparable<T>> : AbstractMutableSet<T>(), Checkable
          *
          * Сложная
          */
-        override fun remove() {
-            // TODO
-            throw NotImplementedError()
+        private fun hasNoDescendant(node: Node<T>?) = (node == null || (node.left == null && node.right == null))
+
+        private fun findRightMaxNode(node: Node<T>?): Node<T>? {
+            var nd: Node<T>? = node ?: return null
+            while (nd!!.right != null)
+                nd = nd.right!!
+            return nd
         }
 
+        override fun remove() {
+            if (list.isEmpty() || flag)
+                throw IllegalStateException()
+
+            val node = currNode
+            val parent = findParent(node!!.value)
+            val leftChild = node.left
+            val rightChild = node.right
+            val value = node.value
+
+            if (root!!.value == value && hasNoDescendant(root)) {
+                root = null
+            } else if (root!!.value == value && rightChild == null && leftChild != null) { // value is root and has 1 left descendant
+                root = leftChild
+            } else if (root!!.value == value && leftChild == null && rightChild != null) { // value is root and has 1 right descendant
+                root = rightChild
+            } else if (leftChild == null && rightChild == null) { // value has no descendant
+                if (parent!!.value > value) parent.left = null else parent.right = null
+            } else if (rightChild == null) { // value has 1 left descendant
+                if (parent!!.value > value) parent.left = leftChild else parent.right = leftChild
+            } else if (leftChild == null) { // value has 1 right descendant
+                if (parent!!.value > value) parent.left = rightChild else parent.right = rightChild
+            } else { // value has 2 descendant
+                val rightMaxNode = findRightMaxNode(leftChild)
+                val rightMaxNodeParent = findParent(rightMaxNode!!.value)
+
+                if ((leftChild.left != null && leftChild.right == null) || hasNoDescendant(leftChild)) {
+                    node.left = leftChild.left
+                    node.value = leftChild.value
+                } else {
+                    node.value = rightMaxNode.value
+                    if (rightMaxNodeParent != null)
+                        rightMaxNodeParent.right = rightMaxNode.left
+                }
+            }
+
+            size--
+            flag = true
+            list.remove(node)
+            currNode = if (list.isNotEmpty()) list.last() else root
+        }
     }
 
     /**
@@ -232,5 +320,4 @@ class KtBinarySearchTree<T : Comparable<T>> : AbstractMutableSet<T>(), Checkable
         val right = node.right
         return right == null || right.value > node.value && checkInvariant(right)
     }
-
 }

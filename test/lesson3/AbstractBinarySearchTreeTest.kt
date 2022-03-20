@@ -272,6 +272,68 @@ abstract class AbstractBinarySearchTreeTest {
             }
             println("All clear!")
         }
+
+        myIteratorRemoveTest1()
+        myIteratorRemoveTest2()
+    }
+
+    private fun myIteratorRemoveTest1() {
+        val myTree = KtBinarySearchTree<Int>()
+        myTree.add(31);
+        myTree.add(7);
+        myTree.add(14);
+        myTree.add(55);
+        myTree.add(34);
+        myTree.add(9);
+        myTree.add(51);
+        myTree.add(4);
+        myTree.add(13);
+        myTree.add(60);
+        myTree.add(33);
+        myTree.add(44);
+        myTree.add(49);
+        myTree.add(53);
+
+        val myItr = myTree.iterator()
+        while (myItr.hasNext()) {
+            val curr = myItr.next()
+            if (curr == 31 || curr == 55 || curr == 33 || curr == 51) {
+                println(curr)
+                myItr.remove()
+            }
+        }
+
+        val checkItr = myTree.iterator()
+        var previous = -1
+        while (checkItr.hasNext()) {
+            val curr = checkItr.next()
+            assertTrue { previous < curr }
+            previous = curr
+        }
+    }
+
+    private fun myIteratorRemoveTest2() {
+        val myRandTree = KtBinarySearchTree<Int>()
+        for (i in 0..100) {
+            val number = (0..200).random()
+            myRandTree.add(number)
+        }
+
+        val myRandItr = myRandTree.iterator()
+        while (myRandItr.hasNext()) {
+            myRandItr.next()
+            if ((1..10).random() in (1..4))
+                myRandItr.remove()
+        }
+
+        val checkItr = myRandTree.iterator()
+        var previous = -1
+        while (checkItr.hasNext()) {
+            val curr = checkItr.next()
+            checkItr.hasNext()
+            assertTrue { previous < curr }
+            previous = curr
+        }
     }
 
     protected fun doSubSetTest() {
