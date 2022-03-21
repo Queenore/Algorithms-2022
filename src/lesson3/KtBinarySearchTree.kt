@@ -44,6 +44,7 @@ class KtBinarySearchTree<T : Comparable<T>> : AbstractMutableSet<T>(), Checkable
             }
         return node
     }
+    // худший случай: T(N) = O(height)
 
     override operator fun contains(element: T): Boolean {
         val closest = find(element)
@@ -107,31 +108,31 @@ class KtBinarySearchTree<T : Comparable<T>> : AbstractMutableSet<T>(), Checkable
     inner class BinarySearchTreeIterator internal constructor() : MutableIterator<T> {
 
         private var currNode = root
-        private val list = mutableListOf<Node<T>?>()
+        private val list = mutableListOf<Node<T>?>() // R(N) = O(N)
         private var flag = false
 
         // реализован прямой обход дерева с сохранением нод в list, которые были пройдены
-        // сохранение состояния позволяет минимизировать трудоемкость
         private fun traverse(): Node<T>? {
             if (root == null) return null
             var node = root
 
-            if (currNode == root && !list.contains(currNode))
-                while (node!!.left != null)
+            if (currNode == root && list.isEmpty())
+                while (node!!.left != null) // худший случай: T(N) = O(height)
                     node = node.left
             else node = currNode
 
             if (node!!.right != null) {
-                while (node!!.right != null && list.contains(node))
+                if (list.contains(node)) // T(N) = O(N)
                     node = node.right
-                while (node!!.left != null)
+                while (node!!.left != null) // худший случай: T(N) = O(height)
                     node = node.left
-            } else
-                while (list.contains(node))
-                    node = findParent(node!!.value)
-
+            } else {
+                while (list.contains(node)) // T(N) = O(N) + O(height) = O(N)
+                    node = findParent(node!!.value) // худший случай: T(N) = O(height)
+            }
             return node
         }
+        // худший случай: T(N) = O(N * height)
 
         /**
          * Проверка наличия следующего элемента
@@ -144,6 +145,7 @@ class KtBinarySearchTree<T : Comparable<T>> : AbstractMutableSet<T>(), Checkable
          * Средняя
          */
         override fun hasNext(): Boolean = traverse() != null
+        // худший случай: T(N) = O(N * height)
 
         /**
          * Получение следующего элемента
@@ -159,13 +161,14 @@ class KtBinarySearchTree<T : Comparable<T>> : AbstractMutableSet<T>(), Checkable
          * Средняя
          */
         override fun next(): T {
-            currNode = traverse()
+            currNode = traverse() // T(N) = O(N * height)
             list.add(currNode)
             flag = false
             if (currNode != null)
                 return currNode!!.value
             else throw NoSuchElementException()
         }
+        // худший случай: T(N) = O(N * height)
 
         /**
          * Удаление предыдущего элемента
@@ -187,13 +190,14 @@ class KtBinarySearchTree<T : Comparable<T>> : AbstractMutableSet<T>(), Checkable
                 nd = nd.right!!
             return nd
         }
+        // худший случай: T(N) = O(height)
 
         override fun remove() {
             if (list.isEmpty() || flag)
                 throw IllegalStateException()
 
             val node = currNode
-            val parent = findParent(node!!.value)
+            val parent = findParent(node!!.value) // T(N) = O(height)
             val leftChild = node.left
             val rightChild = node.right
             val value = node.value
@@ -211,8 +215,8 @@ class KtBinarySearchTree<T : Comparable<T>> : AbstractMutableSet<T>(), Checkable
             } else if (leftChild == null) { // value has 1 right descendant
                 if (parent!!.value > value) parent.left = rightChild else parent.right = rightChild
             } else { // value has 2 descendant
-                val rightMaxNode = findRightMaxNode(leftChild)
-                val rightMaxNodeParent = findParent(rightMaxNode!!.value)
+                val rightMaxNode = findRightMaxNode(leftChild) // T(N) = O(height)
+                val rightMaxNodeParent = findParent(rightMaxNode!!.value) // T(N) = O(height)
 
                 if ((leftChild.left != null && leftChild.right == null) || hasNoDescendant(leftChild)) {
                     node.left = leftChild.left
@@ -226,9 +230,10 @@ class KtBinarySearchTree<T : Comparable<T>> : AbstractMutableSet<T>(), Checkable
 
             size--
             flag = true
-            list.remove(node)
+            list.removeLast()
             currNode = if (list.isNotEmpty()) list.last() else root
         }
+        // худший случай: T(N) = O(height)
     }
 
     /**
