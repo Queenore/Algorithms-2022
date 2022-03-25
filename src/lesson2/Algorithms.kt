@@ -95,22 +95,24 @@ fun josephTask(menNumber: Int, choiceInterval: Int): Int {
  * вернуть ту из них, которая встречается раньше в строке first.
  */
 fun longestCommonSubstring(first: String, second: String): String {
-    var maxSubStr = ""
+    if (first.isEmpty() || second.isEmpty()) return ""
+    var maxI = 0
+    var maxJ = 0
+    val matrix = List(first.length) { MutableList(second.length) { 0 } } // R(N, M) = O(N * M)
     for (i in first.indices) // T(N, M) = O(N)
         for (j in second.indices) // T(N, M) = O(N * M)
             if (first[i] == second[j]) {
-                var k = 0
-                if (first.length - i > maxSubStr.length && second.length - j > maxSubStr.length)
-                    while (i + k <= first.length - 1 && j + k <= second.length - 1
-                        && first[i + k] == second[j + k]
-                    ) // худший случай: T(N, M) = O(min(N, M))
-                        k++
-                if (k > maxSubStr.length)
-                    maxSubStr = first.substring(i, i + k)
+                if (i == 0 || j == 0) matrix[i][j] = 1
+                else matrix[i][j] = matrix[i - 1][j - 1] + 1
+                if (matrix[i][j] > matrix[maxI][maxJ]) {
+                    maxI = i
+                    maxJ = j
+                }
             }
-    return maxSubStr
+    return first.substring(maxI - matrix[maxI][maxJ] + 1, maxI + 1)
 }
-// худший случай: T(N, M) = O(N * M * min(N, N))
+// R(N, M) = O(N * M)
+// T(N, M) = O(N * M)
 
 /**
  * Число простых чисел в интервале
