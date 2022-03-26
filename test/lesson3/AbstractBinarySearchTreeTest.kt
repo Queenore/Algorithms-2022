@@ -274,7 +274,9 @@ abstract class AbstractBinarySearchTreeTest {
         }
 
         myIteratorRemoveTest1()
+        println("my IteratorRemoveTest1 passed!")
         myIteratorRemoveTest2()
+        println("my IteratorRemoveTest2 passed!")
     }
 
     private fun myIteratorRemoveTest1() {
@@ -297,10 +299,8 @@ abstract class AbstractBinarySearchTreeTest {
         val myItr = myTree.iterator()
         while (myItr.hasNext()) {
             val curr = myItr.next()
-            if (curr == 31 || curr == 55 || curr == 33 || curr == 51) {
-                println(curr)
+            if (curr == 31 || curr == 55 || curr == 33 || curr == 51)
                 myItr.remove()
-            }
         }
 
         val checkItr = myTree.iterator()

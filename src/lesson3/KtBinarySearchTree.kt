@@ -109,22 +109,18 @@ class KtBinarySearchTree<T : Comparable<T>> : AbstractMutableSet<T>(), Checkable
 
         private var currNode: Node<T>? = null
         private var flag = false
-        private var deque = ArrayDeque<Node<T>>() // R(N) = O(N)
-
-        init {
-            traverse(root)
-        }
-        // T(N) = O(N)
+        private var iterCounter = 1
+        private var traverseCounter = 0
 
         private fun traverse(node: Node<T>?): Node<T>? {
-            if (node == null) return null
+            if (node == null || traverseCounter >= iterCounter) return null
             traverse(node.left)
-            deque.addFirst(node)
+            if (iterCounter - traverseCounter == 1) currNode = node
+            traverseCounter++
             traverse(node.right)
             return node
         }
         // T(N) = O(N)
-        // R(N) = O(N)
 
         /**
          * Проверка наличия следующего элемента
@@ -136,7 +132,12 @@ class KtBinarySearchTree<T : Comparable<T>> : AbstractMutableSet<T>(), Checkable
          *
          * Средняя
          */
-        override fun hasNext(): Boolean = deque.isNotEmpty()
+        override fun hasNext(): Boolean {
+            traverse(root)
+            traverseCounter = 0
+            return iterCounter <= size
+        }
+        // T(N) = O(N)
 
         /**
          * Получение следующего элемента
@@ -153,11 +154,14 @@ class KtBinarySearchTree<T : Comparable<T>> : AbstractMutableSet<T>(), Checkable
          */
         override fun next(): T {
             flag = false
-            if (deque.isNotEmpty()) {
-                currNode = deque.pollLast()
+            traverse(root)
+            traverseCounter = 0
+            if (iterCounter <= size) {
+                iterCounter++
                 return currNode!!.value
             } else throw NoSuchElementException()
         }
+        // T(N) = O(N)
 
         /**
          * Удаление предыдущего элемента
@@ -217,6 +221,7 @@ class KtBinarySearchTree<T : Comparable<T>> : AbstractMutableSet<T>(), Checkable
                 }
             }
 
+            iterCounter--
             size--
             flag = true
         }
