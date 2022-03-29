@@ -107,33 +107,33 @@ class KtBinarySearchTree<T : Comparable<T>> : AbstractMutableSet<T>(), Checkable
 
     inner class BinarySearchTreeIterator internal constructor() : MutableIterator<T> {
 
-        private var currNode: Node<T>? = null
+        private var currNode: Node<T>? = root
         private var flag = false
         private var iterCounter = 1
+        private var deque = ArrayDeque<Node<T>>()
 
         init {
-            traverse()
-        }
-
-        private fun traverse(): Node<T>? {
-            if (root == null) return null
-            if (currNode == null)
-                currNode = find(first())
-            else {
-                var node = root
-                var tempNode = root
-                while (!hasNoDescendant(tempNode)) {
-                    tempNode = if (currNode!!.value < tempNode!!.value) tempNode.left else tempNode.right
-                    if (tempNode != null &&
-                        (tempNode == node!!.right || tempNode.value > currNode!!.value && tempNode.value < node.value)
-                    )
-                        node = tempNode
+            if (currNode != null)
+                while (currNode!!.left != null) {
+                    currNode?.let { deque.addFirst(it) }
+                    currNode = currNode!!.left
                 }
-                currNode = node
-            }
-            return currNode
         }
-        // T(N) = O(N) - (не превышает высоты дерева)
+        // T(N) = O(N) - не превышает расстояния до самой левой ноды
+
+        private fun traverse() {
+            if (currNode!!.right != null) {
+                currNode = currNode!!.right
+                do {
+                    if (currNode!!.left != null) {
+                        currNode?.let { deque.addFirst(it) }
+                        currNode = currNode!!.left
+                    }
+                } while (currNode!!.left != null)
+            } else
+                currNode = deque.pollFirst()
+        }
+        // T(N) = O(M), где M - расстояние до ближайшей по значению ноды большей текущей
 
         /**
          * Проверка наличия следующего элемента
@@ -145,7 +145,7 @@ class KtBinarySearchTree<T : Comparable<T>> : AbstractMutableSet<T>(), Checkable
          *
          * Средняя
          */
-        override fun hasNext(): Boolean = iterCounter <= size
+        override fun hasNext(): Boolean = iterCounter <= size && currNode != null
         // T(N) = O(1)
 
         /**
@@ -162,11 +162,11 @@ class KtBinarySearchTree<T : Comparable<T>> : AbstractMutableSet<T>(), Checkable
          * Средняя
          */
         override fun next(): T {
-            if (iterCounter <= size) {
-                if (iterCounter > 1)
+            flag = false
+            if (iterCounter <= size && currNode != null) {
+                if (iterCounter != 1)
                     traverse()
                 iterCounter++
-                flag = false
                 return currNode!!.value
             } else throw NoSuchElementException()
         }
@@ -203,7 +203,7 @@ class KtBinarySearchTree<T : Comparable<T>> : AbstractMutableSet<T>(), Checkable
             val leftChild = node.left
             val rightChild = node.right
             val value = node.value
-            val removeFlag = (currNode!!.value == first()) // T(N) = O(N)
+            val removeFlag = currNode!!.value == first() // T(N) = O(N)
 
             if (root!!.value == value && hasNoDescendant(root)) {
                 root = null

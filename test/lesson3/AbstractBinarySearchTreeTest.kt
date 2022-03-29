@@ -281,20 +281,20 @@ abstract class AbstractBinarySearchTreeTest {
 
     private fun myIteratorRemoveTest1() {
         val myTree = KtBinarySearchTree<Int>()
-        myTree.add(31);
-        myTree.add(7);
-        myTree.add(14);
-        myTree.add(55);
-        myTree.add(34);
-        myTree.add(9);
-        myTree.add(51);
-        myTree.add(4);
-        myTree.add(13);
-        myTree.add(60);
-        myTree.add(33);
-        myTree.add(44);
-        myTree.add(49);
-        myTree.add(53);
+        myTree.add(31)
+        myTree.add(7)
+        myTree.add(14)
+        myTree.add(55)
+        myTree.add(34)
+        myTree.add(9)
+        myTree.add(51)
+        myTree.add(4)
+        myTree.add(13)
+        myTree.add(60)
+        myTree.add(33)
+        myTree.add(44)
+        myTree.add(49)
+        myTree.add(53)
 
         val myItr = myTree.iterator()
         while (myItr.hasNext()) {
