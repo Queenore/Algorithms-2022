@@ -109,20 +109,17 @@ class KtBinarySearchTree<T : Comparable<T>> : AbstractMutableSet<T>(), Checkable
 
         private var currNode: Node<T>? = root
         private var flag = false
-        private var iterCounter = 1
+        private var firstActionFlag = true
+        private var iterCounter = 0
         private var deque = ArrayDeque<Node<T>>()
 
-        init {
-            if (currNode != null)
+        private fun traverse() {
+            if (currNode != null && firstActionFlag)
                 while (currNode!!.left != null) {
                     currNode?.let { deque.addFirst(it) }
                     currNode = currNode!!.left
                 }
-        }
-        // T(N) = O(N) - не превышает расстояния до самой левой ноды
-
-        private fun traverse() {
-            if (currNode!!.right != null) {
+            else if (currNode!!.right != null) {
                 currNode = currNode!!.right
                 do {
                     if (currNode!!.left != null) {
@@ -130,10 +127,12 @@ class KtBinarySearchTree<T : Comparable<T>> : AbstractMutableSet<T>(), Checkable
                         currNode = currNode!!.left
                     }
                 } while (currNode!!.left != null)
-            } else
+            } else if (deque.isNotEmpty())
                 currNode = deque.pollFirst()
+            iterCounter++
         }
-        // T(N) = O(M), где M - расстояние до ближайшей по значению ноды большей текущей
+        // T(N) = O(M), где M - расстояние до ближайшей по значению ноды (большей текущей).
+        // За счет запоминания пройденных нод (deque) удалось значительно оптимизировать обход дерева.
 
         /**
          * Проверка наличия следующего элемента
@@ -145,7 +144,7 @@ class KtBinarySearchTree<T : Comparable<T>> : AbstractMutableSet<T>(), Checkable
          *
          * Средняя
          */
-        override fun hasNext(): Boolean = iterCounter <= size && currNode != null
+        override fun hasNext(): Boolean = iterCounter < size && currNode != null
         // T(N) = O(1)
 
         /**
@@ -163,10 +162,9 @@ class KtBinarySearchTree<T : Comparable<T>> : AbstractMutableSet<T>(), Checkable
          */
         override fun next(): T {
             flag = false
-            if (iterCounter <= size && currNode != null) {
-                if (iterCounter != 1)
-                    traverse()
-                iterCounter++
+            if (iterCounter < size) {
+                traverse()
+                firstActionFlag = false
                 return currNode!!.value
             } else throw NoSuchElementException()
         }
@@ -195,7 +193,7 @@ class KtBinarySearchTree<T : Comparable<T>> : AbstractMutableSet<T>(), Checkable
         // худший случай: T(N) = O(N)
 
         override fun remove() {
-            if (flag || iterCounter == 1)
+            if (flag || iterCounter == 0)
                 throw IllegalStateException()
 
             val node = currNode
@@ -203,21 +201,20 @@ class KtBinarySearchTree<T : Comparable<T>> : AbstractMutableSet<T>(), Checkable
             val leftChild = node.left
             val rightChild = node.right
             val value = node.value
-            val removeFlag = currNode!!.value == first() // T(N) = O(N)
 
             if (root!!.value == value && hasNoDescendant(root)) {
                 root = null
-            } else if (root!!.value == value && rightChild == null && leftChild != null) { // value is root and has 1 left descendant
+            } else if (root!!.value == value && rightChild == null && leftChild != null) { // node is root and has 1 left descendant
                 root = leftChild
-            } else if (root!!.value == value && leftChild == null && rightChild != null) { // value is root and has 1 right descendant
+            } else if (root!!.value == value && leftChild == null && rightChild != null) { // node is root and has 1 right descendant
                 root = rightChild
-            } else if (leftChild == null && rightChild == null) { // value has no descendant
+            } else if (leftChild == null && rightChild == null) { // node has no descendant
                 if (parent!!.value > value) parent.left = null else parent.right = null
-            } else if (rightChild == null) { // value has 1 left descendant
+            } else if (rightChild == null) { // node has 1 left descendant
                 if (parent!!.value > value) parent.left = leftChild else parent.right = leftChild
-            } else if (leftChild == null) { // value has 1 right descendant
+            } else if (leftChild == null) { // node has 1 right descendant
                 if (parent!!.value > value) parent.left = rightChild else parent.right = rightChild
-            } else { // value has 2 descendant
+            } else { // node has 2 descendant
                 val rightMaxNode = findRightMaxNode(leftChild) // T(N) = O(N)
                 val rightMaxNodeParent = findParent(rightMaxNode!!.value) // T(N) = O(N)
 
@@ -231,7 +228,7 @@ class KtBinarySearchTree<T : Comparable<T>> : AbstractMutableSet<T>(), Checkable
                 }
             }
 
-            if (removeFlag) currNode = find(first()) // T(N) = O(N)
+            currNode = node
             iterCounter--
             size--
             flag = true
