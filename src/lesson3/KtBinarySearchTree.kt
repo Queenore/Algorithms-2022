@@ -108,18 +108,19 @@ class KtBinarySearchTree<T : Comparable<T>> : AbstractMutableSet<T>(), Checkable
     inner class BinarySearchTreeIterator internal constructor() : MutableIterator<T> {
 
         private var currNode: Node<T>? = root
-        private var flag = false
+        private var oneTimeRemoveFlag = false
         private var firstActionFlag = true
         private var iterCounter = 0
         private var deque = ArrayDeque<Node<T>>()
 
         private fun traverse() {
-            if (currNode != null && firstActionFlag)
+            if (currNode != null && firstActionFlag) {
+                firstActionFlag = false
                 while (currNode!!.left != null) {
                     currNode?.let { deque.addFirst(it) }
                     currNode = currNode!!.left
                 }
-            else if (currNode!!.right != null) {
+            } else if (currNode!!.right != null) {
                 currNode = currNode!!.right
                 do {
                     if (currNode!!.left != null) {
@@ -161,10 +162,9 @@ class KtBinarySearchTree<T : Comparable<T>> : AbstractMutableSet<T>(), Checkable
          * Средняя
          */
         override fun next(): T {
-            flag = false
             if (iterCounter < size) {
+                oneTimeRemoveFlag = false
                 traverse()
-                firstActionFlag = false
                 return currNode!!.value
             } else throw NoSuchElementException()
         }
@@ -193,7 +193,7 @@ class KtBinarySearchTree<T : Comparable<T>> : AbstractMutableSet<T>(), Checkable
         // худший случай: T(N) = O(N)
 
         override fun remove() {
-            if (flag || iterCounter == 0)
+            if (oneTimeRemoveFlag || iterCounter == 0)
                 throw IllegalStateException()
 
             val node = currNode
@@ -231,7 +231,7 @@ class KtBinarySearchTree<T : Comparable<T>> : AbstractMutableSet<T>(), Checkable
             currNode = node
             iterCounter--
             size--
-            flag = true
+            oneTimeRemoveFlag = true
         }
         // худший случай: T(N) = O(N)
     }
