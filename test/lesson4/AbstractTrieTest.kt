@@ -4,6 +4,7 @@ import java.util.*
 import kotlin.math.abs
 import ru.spbstu.kotlin.generate.util.nextString
 import kotlin.NoSuchElementException
+import kotlin.random.Random.Default.nextBoolean
 import kotlin.test.*
 
 abstract class AbstractTrieTest {
@@ -69,6 +70,20 @@ abstract class AbstractTrieTest {
     }
 
     protected fun doIteratorTest() {
+        try {
+            myIteratorTest1()
+            println("----myIteratorTest1 passed----\n")
+        } catch (e: NoSuchElementException) {
+            println("----myIteratorTest1 failed----\n")
+        }
+
+        try {
+            myIteratorTest2()
+            println("----myIteratorTest2 passed----\n")
+        } catch (e: NoSuchElementException) {
+            println("----myIteratorTest2 failed----\n")
+        }
+
         implementationTest { create().iterator().hasNext() }
         implementationTest { create().iterator().next() }
         val random = Random()
@@ -112,7 +127,59 @@ abstract class AbstractTrieTest {
         }
     }
 
+    private fun myIteratorTest1() {
+        val myTree = KtTrie()
+        myTree.add("abover")
+        myTree.add("abov")
+        myTree.add("flex")
+        myTree.add("flore")
+        myTree.add("flox")
+        myTree.add("flua")
+        myTree.add("moon")
+        myTree.add("mops")
+        myTree.add("flipper")
+        myTree.add("fmi")
+        myTree.add("fl")
+        myTree.add("f")
+        myTree.add("floxqw")
+        myTree.add("floxre")
+        myTree.add("floxqm")
+        val iter = myTree.iterator()
+        while (iter.hasNext()) {
+            val currStr = iter.next()
+            println(currStr)
+            assertTrue(myTree.contains(currStr), "no such element: $currStr")
+        }
+    }
+
+    private fun myIteratorTest2() {
+        val myTree = KtTrie()
+        myTree.add("dg")
+        myTree.add("hdha")
+        myTree.add("aaahd")
+        myTree.add("f")
+        myTree.add("h")
+        myTree.add("e")
+        myTree.add("cfcgaheeg")
+        myTree.add("efbeghabahfcba")
+        myTree.add("fgfbgbcghgahe")
+        myTree.add("cafh")
+        myTree.add("fgebfc")
+        myTree.add("edhffahagd")
+        myTree.add("cbebgh")
+        myTree.add("ha")
+        myTree.add("edhahcgdbf")
+        val iter = myTree.iterator()
+        while (iter.hasNext()) {
+            val currStr = iter.next()
+            println(currStr)
+            assertTrue(myTree.contains(currStr), "no such element: $currStr")
+        }
+    }
+
     protected fun doIteratorRemoveTest() {
+        myRemoveTest()
+
         implementationTest { create().iterator().remove() }
         val random = Random()
         for (iteration in 1..100) {
@@ -170,6 +237,41 @@ abstract class AbstractTrieTest {
                 )
             }
             println("All clear!")
+        }
+    }
+
+    private fun myRemoveTest() {
+        val myTree = KtTrie()
+        myTree.add("abover")
+        myTree.add("abov")
+        myTree.add("flex")
+        myTree.add("flore")
+        myTree.add("flox")
+        myTree.add("flua")
+        myTree.add("moon")
+        myTree.add("mops")
+        myTree.add("flipper")
+        myTree.add("fmi")
+        myTree.add("fl")
+        myTree.add("f")
+        myTree.add("floxqw")
+        myTree.add("floxre")
+        myTree.add("floxqm")
+        val iter = myTree.iterator()
+        while (iter.hasNext()) {
+            val curr = iter.next()
+            if (nextBoolean()) {
+                println("removing element: $curr")
+                iter.remove()
+                assertFalse(myTree.contains(curr))
+                val testIter = myTree.iterator()
+                println("remaining elements:")
+                println("----------")
+                while (testIter.hasNext()) {
+                    println(testIter.next())
+                }
+                println("----------\n")
+            }
         }
     }
 
