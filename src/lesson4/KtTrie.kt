@@ -99,15 +99,14 @@ class KtTrie : AbstractMutableSet<String>(), MutableSet<String> {
                     || currNode.value.children.size > 1
                 ) stringDeque.addFirst(Pair(currStr.toString(), currNode))
 
-                val tempDeque = ArrayDeque<Map.Entry<Char, Node>>()                              //---|   за все итер.
-                currNode.value.children.forEach { if (it.key.code != 0) tempDeque.addFirst(it) } //   |-> = 2*O(N) =
-                tempDeque.forEach { if (it.key.code != 0) deque.addFirst(it) }                   //---|   = O(N)
+                val tempDeque = ArrayDeque<Map.Entry<Char, Node>>()                              //--| за все итер.
+                currNode.value.children.forEach { if (it.key.code != 0) tempDeque.addFirst(it) } //  | T(N) = 2*O(N) =
+                tempDeque.forEach { if (it.key.code != 0) deque.addFirst(it) }                   //--| = O(N)
             } while (currNode.value.children.firstKey().code != 0)
             iterCounter++
         }
-        // Для while: T(M), где M - кол-во итераций до нижней ноды, являющейся последней буквой слова.
-        // При этом если мы добрались до ноды, у которой один потомок с кодом 0, то берем ноду из deque, что
-        // обеспечивает наилучшее быстродействие.
+        // Для while: T(N) = O(M), где M - кол-во итераций до следующей нижней ноды, являющейся последней буквой слова.
+        // За счет запоминания нод в deque удалось обеспечить наилучшее быстродействие.
         // По итогу получается, что T(N) = O(N).
 
         override fun hasNext(): Boolean = iterCounter < size
