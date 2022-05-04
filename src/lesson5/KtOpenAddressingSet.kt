@@ -51,7 +51,7 @@ class KtOpenAddressingSet<T : Any>(private val bits: Int) : AbstractMutableSet<T
         val startingIndex = element.startingIndex()
         var index = startingIndex
         var current = storage[index]
-        while (current != null) {
+        while (current != null && current != "") {
             if (current == element) {
                 return false
             }
@@ -76,8 +76,21 @@ class KtOpenAddressingSet<T : Any>(private val bits: Int) : AbstractMutableSet<T
      * Средняя
      */
     override fun remove(element: T): Boolean {
-        TODO("not implemented")
+        val startingIndex = element.startingIndex()
+        var index = startingIndex
+        var current = storage[index]
+        while (current != null) {
+            if (current == element) {
+                storage[index] = ""
+                size--
+                return true
+            }
+            index = (index + 1) % capacity
+            current = storage[index]
+        }
+        return false
     }
+    // T(N, M) = 1 / (1 - A), где A = N / M, N = size, M = capacity
 
     /**
      * Создание итератора для обхода таблицы
@@ -89,7 +102,41 @@ class KtOpenAddressingSet<T : Any>(private val bits: Int) : AbstractMutableSet<T
      *
      * Средняя (сложная, если поддержан и remove тоже)
      */
-    override fun iterator(): MutableIterator<T> {
-        TODO("not implemented")
+    override fun iterator(): MutableIterator<T> = KtOpenAddressingIterator()
+
+    inner class KtOpenAddressingIterator internal constructor() : MutableIterator<T> {
+
+        private var iterCounter = 0
+        private var currIndex = 0
+        private var currElem: Any? = Any()
+        private var oneTimeRemove = false
+
+        override fun hasNext(): Boolean = iterCounter < size
+        // T(N) = O(1), где N - capacity
+
+        @Suppress("UNCHECKED_CAST")
+        override fun next(): T {
+            if (iterCounter < size) {
+                do {
+                    currElem = storage[currIndex]
+                    currIndex += 1
+                } while (currElem == null || currElem == "")
+                iterCounter++
+                oneTimeRemove = true
+            } else throw NoSuchElementException()
+            return currElem as T
+        }
+        // T(N) = O(N), где N - capacity
+
+        override fun remove() {
+            if (oneTimeRemove) {
+                storage[currIndex - 1] = ""
+                oneTimeRemove = false
+                iterCounter--
+                size--
+            } else throw IllegalStateException()
+        }
+        // T(N) = O(1), где N - capacity
+
     }
 }

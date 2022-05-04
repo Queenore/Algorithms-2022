@@ -41,6 +41,8 @@ abstract class AbstractOpenAddressingSetTest {
     }
 
     protected fun doRemoveTest() {
+        myRemoveTest()
+
         val random = Random()
         for (iteration in 1..100) {
             val bitsNumber = random.nextInt(4) + 6
@@ -77,6 +79,25 @@ abstract class AbstractOpenAddressingSetTest {
                 )
             }
         }
+    }
+
+    private fun myRemoveTest() {
+        val bits = 7
+        val openAddressingSet = create<Int>(bits)
+        var addNumber = 0
+        var removeNumber = 0
+        for (i in 1..200) {
+            val rnd = (0..100).random()
+            if (!openAddressingSet.contains(rnd)) {
+                addNumber++
+                openAddressingSet.add(rnd)
+                if (rnd in 0..20) {
+                    openAddressingSet.remove(rnd)
+                    removeNumber++
+                }
+            }
+        }
+        assertTrue { openAddressingSet.size == addNumber - removeNumber }
     }
 
     protected fun doIteratorTest() {
@@ -122,6 +143,8 @@ abstract class AbstractOpenAddressingSetTest {
     }
 
     protected fun doIteratorRemoveTest() {
+        myIteratorRemoveTest()
+
         val random = Random()
         for (iteration in 1..100) {
             val controlSet = mutableSetOf<String>()
@@ -177,4 +200,18 @@ abstract class AbstractOpenAddressingSetTest {
             println("All clear!")
         }
     }
+
+    private fun myIteratorRemoveTest() {
+        val bits = 4
+        val openAddressingSet = create<Int>(bits)
+        for (i in 1..(1 shl bits))
+            openAddressingSet.add((0..100).random())
+        val iterator = openAddressingSet.iterator()
+        while (iterator.hasNext()) {
+            iterator.next()
+            iterator.remove()
+        }
+        assertTrue { openAddressingSet.size == 0 }
+    }
+
 }
