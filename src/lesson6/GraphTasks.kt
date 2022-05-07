@@ -65,7 +65,7 @@ fun Graph.findEulerLoop(): List<Graph.Edge> {
 enum class Color { WHITE, GREY, BlACK }
 
 fun findLoop(graph: Graph): Boolean {
-    val tabuList = mutableSetOf<Graph.Edge>()
+    val tabuConnList = mutableMapOf<Graph.Edge, Boolean>()
     val info = mutableMapOf<String, Color>()
     var start = ""
     var loopInd = false
@@ -73,54 +73,59 @@ fun findLoop(graph: Graph): Boolean {
     graph.vertices.forEach {
         if (graph.getConnections(graph.get(it.name)!!).isNotEmpty())
             start = it.name
+        for (u in graph.getConnections(graph.get(it.name)!!))
+            tabuConnList[u.value] = true
         info[it.name] = Color.WHITE
-    }
+    } // T(V, E) = O(V + E)
 
     fun dfs(v: String) {
         info[v] = Color.GREY
         for (u in graph.getConnections(graph.get(v)!!))
-            if (!tabuList.contains(u.value)) {
+            if (tabuConnList[u.value]!!) {
                 val currName = if (v == u.value.begin.name)
                     u.value.end.name
                 else u.value.begin.name
                 if (info[currName] == Color.WHITE) {
-                    tabuList.add(u.value)
+                    tabuConnList[u.value] = false
                     dfs(currName)
                 } else if (info[currName] == Color.GREY)
                     loopInd = true
             }
         info[v] = Color.BlACK
-    }
+    } // T(V, E) = O(V + E)
 
     if (start != "")
         dfs(start)
 
     return loopInd
 }
+// T(V, E) = O(V + E) + O(V + E) = O(V + E)
 
 fun Graph.minimumSpanningTree(): Graph {
     val listOfEdges = edges.toList()
-    val tabuIndexes = mutableListOf<Int>()
-    for (i in listOfEdges.indices) {
+    val tabuIndexes = mutableMapOf<Int, Boolean>()
+    listOfEdges.forEachIndexed { index, _ -> tabuIndexes[index] = true } // T(V, E) = O(E)
+    for (i in listOfEdges.indices) { // T(V, E) = O(E)
         val graph = GraphBuilder().apply {
-            vertices.forEach { addVertex(it.name) }
-            for (j in 0..i) {
-                if (!tabuIndexes.contains(j))
+            vertices.forEach { addVertex(it.name) } // T(V, E) = O(V)
+            for (j in 0..i) { // T(V, E) = O(E)
+                if (tabuIndexes[j]!!)
                     addConnection(listOfEdges[j].begin, listOfEdges[j].end)
             }
         }.build()
-        if (findLoop(graph))
-            tabuIndexes += i
-    }
+        if (findLoop(graph)) // T(V, E) = O(V + E)
+            tabuIndexes[i] = false
+    } // T(V, E) = O(E) * (O(V) + O(E) + O(V + E)) = O(E) * O(V + E)
     val graph = GraphBuilder().apply {
-        vertices.forEach { addVertex(it.name) }
-        listOfEdges.forEachIndexed { index, it ->
-            if (!tabuIndexes.contains(index))
+        vertices.forEach { addVertex(it.name) } // T(V, E) = O(V)
+        listOfEdges.forEachIndexed { index, it -> // T(V, E) = O(E)
+            if (tabuIndexes[index]!!)
                 addConnection(it.begin, it.end)
         }
-    }.build()
+    }.build() // T(V, E) = O(V + E)
     return graph
 }
+// T(V, E) = O(E) + O(E) * O(V + E) + O(V + E) = O(E) * O(V + E)
 
 /**
  * Максимальное независимое множество вершин в графе без циклов.
@@ -147,7 +152,7 @@ fun Graph.minimumSpanningTree(): Graph {
  * Если на входе граф с циклами, бросить IllegalArgumentException
  */
 fun Graph.largestIndependentVertexSet(): Set<Graph.Vertex> {
-    var mMax = mutableSetOf<Graph.Vertex>()
+    var maxRes = mutableSetOf<Graph.Vertex>()
     val startK = mutableSetOf<Graph.Vertex>()
     var max = 0
 
@@ -166,19 +171,24 @@ fun Graph.largestIndependentVertexSet(): Set<Graph.Vertex> {
                 newM.addAll(M)
                 largestIndSet(newM, newK)
             }
+            println(curr)
             K.remove(curr)
         }
         if (M.size > max) {
             max = M.size
-            mMax = M
+            maxRes = M
         }
     }
 
     vertices.forEach { startK.add(it) }
     largestIndSet(mutableSetOf(), startK)
 
-    return mMax
+    return maxRes
 }
+// Метод ветвей и границ:
+// Получить полиномиальную оценку для числа шагов такого алгоритма сложно.
+// Теоретически алгоритм ветвей и границ может в итоге свестись к просмотру всех базисных множеств
+// (соответствует простому перебору множества решений).
 
 /**
  * Наидлиннейший простой путь.
