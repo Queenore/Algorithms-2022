@@ -124,6 +124,8 @@ abstract class AbstractGraphTests {
     }
 
     fun minimumSpanningTree(minimumSpanningTree: Graph.() -> Graph) {
+        myMSTTests()
+
         val emptyGraph = GraphBuilder().build()
         assertTrue(emptyGraph.minimumSpanningTree().edges.isEmpty())
         val graph = GraphBuilder().apply {
@@ -183,7 +185,75 @@ abstract class AbstractGraphTests {
         assertEquals(4, tree3.findBridges().size)
     }
 
+    private fun myMSTTests() {
+        // A -- B -- C         A -- B -- C
+        // |    |    |                   |
+        // H -- I -- D  ---->  H -- I    D
+        // |    |    |         |         |
+        // G -- F -- E         G -- F -- E
+        val graphA = GraphBuilder().apply {
+            val a = addVertex("A")
+            val b = addVertex("B")
+            val c = addVertex("C")
+            val d = addVertex("D")
+            val e = addVertex("E")
+            val f = addVertex("F")
+            val g = addVertex("G")
+            val h = addVertex("H")
+            val i = addVertex("I")
+            addConnection(a, b)
+            addConnection(b, c)
+            addConnection(c, d)
+            addConnection(d, e)
+            addConnection(e, f)
+            addConnection(f, g)
+            addConnection(g, h)
+            addConnection(h, a)
+            addConnection(b, i)
+            addConnection(d, i)
+            addConnection(f, i)
+            addConnection(h, i)
+        }.build()
+        val treeA = graphA.minimumSpanningTree()
+        assertEquals(8, treeA.edges.size)
+        assertEquals(8, treeA.findBridges().size)
+
+        // A -- B -- C -- D          A -- B -- C -- D
+        // | \/ | \/ | \/ |   --->                  |
+        // | /\ | /\ | /\ |   --->                  |
+        // E -- F -- G -- H          E -- F -- G -- H
+        val graphB = GraphBuilder().apply {
+            val a = addVertex("A")
+            val b = addVertex("B")
+            val c = addVertex("C")
+            val d = addVertex("D")
+            val e = addVertex("E")
+            val f = addVertex("F")
+            val g = addVertex("G")
+            val h = addVertex("H")
+            addConnection(a, b)
+            addConnection(b, c)
+            addConnection(c, d)
+            addConnection(d, h)
+            addConnection(h, g)
+            addConnection(g, f)
+            addConnection(f, e)
+            addConnection(a, e)
+            addConnection(a, f)
+            addConnection(e, b)
+            addConnection(b, g)
+            addConnection(f, c)
+            addConnection(c, h)
+            addConnection(g, d)
+        }.build()
+        val treeB = graphB.minimumSpanningTree()
+        assertEquals(7, treeB.edges.size)
+        assertEquals(7, treeB.findBridges().size)
+    }
+
     fun largestIndependentVertexSet(largestIndependentVertexSet: Graph.() -> Set<Graph.Vertex>) {
+        myLIVSTests()
+
         val emptyGraph = GraphBuilder().build()
         assertTrue(emptyGraph.largestIndependentVertexSet().isEmpty())
         val simpleGraph = GraphBuilder().apply {
@@ -257,6 +327,62 @@ abstract class AbstractGraphTests {
         assertEquals(
             setOf(cross["A"], cross["B"], cross["C"], cross["D"]),
             cross.largestIndependentVertexSet()
+        )
+    }
+
+    private fun myLIVSTests() {
+        // A ---- C
+        //       /
+        //      /
+        //     B ---- D
+        //     |
+        //     |
+        //     E
+        val graphA = GraphBuilder().apply {
+            val a = addVertex("A")
+            val b = addVertex("B")
+            val c = addVertex("C")
+            val d = addVertex("D")
+            val e = addVertex("E")
+            addConnection(a, c)
+            addConnection(b, c)
+            addConnection(b, d)
+            addConnection(b, e)
+        }.build()
+        assertEquals(
+            setOf(graphA["A"], graphA["D"], graphA["E"]),
+            graphA.largestIndependentVertexSet()
+        )
+
+        //     A ----- B
+        //    /  \   /  \
+        //   D --- E --- F
+        //    \  /   \  /
+        //     G ----- C
+        val graphB = GraphBuilder().apply {
+            val a = addVertex("A")
+            val b = addVertex("B")
+            val c = addVertex("C")
+            val d = addVertex("D")
+            val e = addVertex("E")
+            val f = addVertex("F")
+            val g = addVertex("G")
+            addConnection(a, b)
+            addConnection(b, f)
+            addConnection(f, c)
+            addConnection(c, g)
+            addConnection(g, d)
+            addConnection(d, a)
+            addConnection(a, e)
+            addConnection(b, e)
+            addConnection(f, e)
+            addConnection(c, e)
+            addConnection(g, e)
+            addConnection(d, e)
+        }.build()
+        assertEquals(
+            setOf(graphB["A"], graphB["F"], graphB["G"]),
+            graphB.largestIndependentVertexSet()
         )
     }
 

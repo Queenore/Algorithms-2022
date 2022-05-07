@@ -2,6 +2,8 @@
 
 package lesson6
 
+import lesson6.impl.GraphBuilder
+
 /**
  * Эйлеров цикл.
  * Средняя
@@ -60,8 +62,64 @@ fun Graph.findEulerLoop(): List<Graph.Edge> {
  * |
  * J ------------ K
  */
+enum class Color { WHITE, GREY, BlACK }
+
+fun findLoop(graph: Graph): Boolean {
+    val tabuList = mutableSetOf<Graph.Edge>()
+    val info = mutableMapOf<String, Color>()
+    var start = ""
+    var loopInd = false
+
+    graph.vertices.forEach {
+        if (graph.getConnections(graph.get(it.name)!!).isNotEmpty())
+            start = it.name
+        info[it.name] = Color.WHITE
+    }
+
+    fun dfs(v: String) {
+        info[v] = Color.GREY
+        for (u in graph.getConnections(graph.get(v)!!))
+            if (!tabuList.contains(u.value)) {
+                val currName = if (v == u.value.begin.name)
+                    u.value.end.name
+                else u.value.begin.name
+                if (info[currName] == Color.WHITE) {
+                    tabuList.add(u.value)
+                    dfs(currName)
+                } else if (info[currName] == Color.GREY)
+                    loopInd = true
+            }
+        info[v] = Color.BlACK
+    }
+
+    if (start != "")
+        dfs(start)
+
+    return loopInd
+}
+
 fun Graph.minimumSpanningTree(): Graph {
-    TODO()
+    val listOfEdges = edges.toList()
+    val tabuIndexes = mutableListOf<Int>()
+    for (i in listOfEdges.indices) {
+        val graph = GraphBuilder().apply {
+            vertices.forEach { addVertex(it.name) }
+            for (j in 0..i) {
+                if (!tabuIndexes.contains(j))
+                    addConnection(listOfEdges[j].begin, listOfEdges[j].end)
+            }
+        }.build()
+        if (findLoop(graph))
+            tabuIndexes += i
+    }
+    val graph = GraphBuilder().apply {
+        vertices.forEach { addVertex(it.name) }
+        listOfEdges.forEachIndexed { index, it ->
+            if (!tabuIndexes.contains(index))
+                addConnection(it.begin, it.end)
+        }
+    }.build()
+    return graph
 }
 
 /**
@@ -81,7 +139,7 @@ fun Graph.minimumSpanningTree(): Graph {
  * Найти в нём самое большое независимое множество вершин и вернуть его.
  * Никакая пара вершин в независимом множестве не должна быть связана ребром.
  *
- * Если самых больших множеств несколько, приоритет имеет то из них,
+ * Если самых больших множеств несколько, приоритет имеет тот из них,
  * в котором вершины расположены раньше во множестве this.vertices (начиная с первых).
  *
  * В данном случае ответ (A, E, F, D, G, J)
@@ -89,7 +147,37 @@ fun Graph.minimumSpanningTree(): Graph {
  * Если на входе граф с циклами, бросить IllegalArgumentException
  */
 fun Graph.largestIndependentVertexSet(): Set<Graph.Vertex> {
-    TODO()
+    var mMax = mutableSetOf<Graph.Vertex>()
+    val startK = mutableSetOf<Graph.Vertex>()
+    var max = 0
+
+    fun largestIndSet(M: MutableSet<Graph.Vertex>, K: MutableSet<Graph.Vertex>) {
+        while (K.isNotEmpty()) {
+            val curr = K.first()
+            val newK = K.filter {
+                getConnections(get(it.name)!!).size == getConnections(get(it.name)!!).filter { it1 ->
+                    it == curr || it1.value.begin != curr && it1.value.end != curr
+                }.size
+            }.toMutableSet()
+            if (M.size + newK.size > max) {
+                newK.remove(curr)
+                val newM = mutableSetOf<Graph.Vertex>()
+                newM.add(curr)
+                newM.addAll(M)
+                largestIndSet(newM, newK)
+            }
+            K.remove(curr)
+        }
+        if (M.size > max) {
+            max = M.size
+            mMax = M
+        }
+    }
+
+    vertices.forEach { startK.add(it) }
+    largestIndSet(mutableSetOf(), startK)
+
+    return mMax
 }
 
 /**
